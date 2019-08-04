@@ -11,6 +11,7 @@
     "prepublish": "npx lsc --no-header -r livescript-transform-implicit-async/register -c index.ls"
   },
   "dependencies": {
+    "tweetnacl": "^1.0.1"
   },
   "devDependencies": {
     "livescript": "^1.6.0",
