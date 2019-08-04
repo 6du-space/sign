@@ -11,7 +11,6 @@
     "prepublish": "npx lsc --no-header -r livescript-transform-implicit-async/register -c index.ls"
   },
   "dependencies": {
-    "fs-extra": "^8.1.0"
   },
   "devDependencies": {
     "livescript": "^1.6.0",
