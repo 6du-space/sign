@@ -21,6 +21,8 @@ read = (name)~>
 
 hash = (cwd)~>
   cut = cwd.length+1
+  fileli = []
+  hashli = []
   new Promise(
     (resolve, reject)~>
       klaw(cwd)
@@ -29,7 +31,8 @@ hash = (cwd)~>
           ({path, stats})~>
             if stats.isDirectory!
               return
-            console.log path.slice(cut), sodium.hash(await fs.readFile(path)).toString('base64')
+            fileli.push path.slice(cut)
+            hashli.push sodium.hash(await fs.readFile(path))
         )
         .on(
           \error
@@ -40,6 +43,11 @@ hash = (cwd)~>
         .on(
           'end'
           ~>
+            buf = Buffer.allocUnsafe(6)
+            buf.writeUIntLE(fileli.length,0,6)
+            console.log buf.readUIntLE(0,6)
+            # console.log fileli
+            # console.log hashli
             resolve()
         )
 
