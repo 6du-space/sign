@@ -3,6 +3,8 @@
 require! <[
   path
   klaw
+  z85
+  zlib
 ]>
 
 require! {
@@ -10,6 +12,8 @@ require! {
   \config-6du/6du : config
   \fs-extra : fs
 }
+
+{promisify} = require "util"
 
 read = (name)~>
   fs.readFile(
@@ -19,10 +23,9 @@ read = (name)~>
   )
 
 
-hash = (cwd)~>
+hash = (sk, cwd)~>
   cut = cwd.length+1
-  fileli = []
-  hashli = []
+  li = []
   new Promise(
     (resolve, reject)~>
       klaw(cwd)
@@ -31,8 +34,10 @@ hash = (cwd)~>
           ({path, stats})~>
             if stats.isDirectory!
               return
-            fileli.push path.slice(cut)
-            hashli.push sodium.hash(await fs.readFile(path))
+            li.push [
+              path.slice(cut)
+              sodium.hash(await fs.readFile(path))
+            ]
         )
         .on(
           \error
@@ -43,21 +48,54 @@ hash = (cwd)~>
         .on(
           'end'
           ~>
-            buf = Buffer.allocUnsafe(6)
-            buf.writeUIntLE(fileli.length,0,6)
-            console.log buf.readUIntLE(0,6)
-            # console.log fileli
-            # console.log hashli
-            resolve()
+            li.sort (a,b)!~>
+              if a > b
+                return -1
+              else
+                return 1
+
+            n = Buffer.allocUnsafe(6)
+            n.writeUIntLE(li.length,0,6)
+
+            fileli = []
+            hashli = []
+            for [f,h] in li
+              fileli.push f
+              hashli.push h
+
+            hashli.unshift Buffer.from(fileli.join("\n"))
+            hashli.unshift(n)
+
+            b = Buffer.concat(hashli)
+            resolve Buffer.concat(
+              [
+                b
+                sodium.sign(sk, sodium.hash(b))
+              ]
+            )
         )
 
   )
 
+pack = (sk, dirpath)!~>
+  result = await hash(sk, dirpath)
+  return promisify(zlib.brotliCompress,{
+    params:{
+      "#{zlib.constants.BROTLI_PARAM_QUALITY}":zlib.constants.BROTLI_MAX_QUALITY
+      "#{zlib.constants.BROTLI_PARAM_SIZE_HINT}":result.length
+    }
+  })(result)
 
+# https://github.com/davideicardi/live-plugin-manager#readme
 do !->
+  # console.log zlib.constants.BROTLI_MAX_QUALITY
   dirpath = "/root/tmp/sh"
+  sk = await read("sk")
+  packed = await pack(sk, dirpath)
+  console.log packed
+  console.log packed.length
+
   # console.log dirpath
-  await hash(dirpath)
   # sk = await read('sk')
   # msg = Buffer.from(\11)
   # signed = sodium.sign(sk, msg)

@@ -18,7 +18,8 @@
     "fs-extra": "^8.1.0",
     "google-protobuf": "^3.9.0",
     "klaw": "^3.0.0",
-    "sodium-6du": "^0.0.1"
+    "sodium-6du": "^0.0.1",
+    "z85": "^0.0.2"
   },
   "devDependencies": {
     "livescript": "^1.6.0",
