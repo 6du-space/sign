@@ -19,7 +19,7 @@ read = (name)~>
 
 do !~>
   sk = await read('sk')
-  msg = Buffer.from(\1)
+  msg = Buffer.from(\11)
   signed = sodium.sign(sk, msg)
   console.log signed
 
