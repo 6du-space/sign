@@ -5,7 +5,7 @@ require! <[
 ]>
 
 require! {
-  \sodium-native : sodium
+  \sodium-6du : sodium
   \config-6du/6du : config
   \fs-extra : fs
 }
@@ -18,16 +18,12 @@ read = (name)~>
   )
 
 do !~>
-  message = Buffer.from \test
-  signed = Buffer.alloc sodium.crypto_sign_BYTES + message.length
-  secret = await read('sk')
-  sodium.crypto_sign(signed, message, secret)
+  sk = await read('sk')
+  msg = Buffer.from(\1)
+  signed = sodium.sign(sk, msg)
   console.log signed
 
   pk = await read('pk')
-  message = Buffer.alloc(
-    signed.length - sodium.crypto_sign_BYTES
-  )
-  sodium.crypto_sign_open(message, signed, pk)
-  console.log message.toString()
+  msg = sodium.verify(pk, signed)
+  console.log msg.toString()
 
