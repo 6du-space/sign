@@ -1,4 +1,4 @@
-#!/usr/bin/env node -r livescript-transform-implicit-async/register 
+#!/usr/bin/env -S node -r livescript-transform-implicit-async/register
 
 require! <[
   path
@@ -20,17 +20,16 @@ read = (name)~>
 
 
 hash = (cwd)~>
+  cut = cwd.length+1
   new Promise(
     (resolve, reject)~>
       klaw(cwd)
         .on(
-          \readable
-          ->
-            while 1
-              item = @read()
-              if not item
-                break
-              console.log item.path
+          \data
+          ({path, stats})~>
+            if stats.isDirectory!
+              return
+            console.log path.slice(cut), sodium.hash(await fs.readFile(path)).toString('base64')
         )
         .on(
           \error
@@ -48,7 +47,8 @@ hash = (cwd)~>
 
 
 do !->
-  dirpath = process.cwd()
+  dirpath = "/root/tmp/sh"
+  # console.log dirpath
   await hash(dirpath)
   # sk = await read('sk')
   # msg = Buffer.from(\11)

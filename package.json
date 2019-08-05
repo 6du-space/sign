@@ -6,6 +6,9 @@
   "repository": "git@github.com:6du-space/sign.git",
   "author": "6du",
   "license": "MPL-2.0",
+  "bin": {
+    "sign-6du": "index.ls"
+  },
   "scripts": {
     "dev": "npx nodemon -r livescript-transform-implicit-async/register -e ls,js index.ls",
     "prepublish": "npx lsc --no-header -r livescript-transform-implicit-async/register -c index.ls"
