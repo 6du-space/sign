@@ -2,6 +2,7 @@
 
 require! <[
   path
+  klaw
 ]>
 
 require! {
@@ -17,13 +18,44 @@ read = (name)~>
     )
   )
 
-do !~>
-  sk = await read('sk')
-  msg = Buffer.from(\11)
-  signed = sodium.sign(sk, msg)
-  console.log signed
 
-  pk = await read('pk')
-  msg = sodium.verify(pk, signed)
-  console.log msg.toString()
+hash = (cwd)~>
+  new Promise(
+    (resolve, reject)~>
+      klaw(cwd)
+        .on(
+          \readable
+          ->
+            while 1
+              item = @read()
+              if not item
+                break
+              console.log item.path
+        )
+        .on(
+          \error
+          (err, item) ~>
+            console.log err.message
+            console.log item.path
+        )
+        .on(
+          'end'
+          ~>
+            resolve()
+        )
+
+  )
+
+
+do !->
+  dirpath = process.cwd()
+  await hash(dirpath)
+  # sk = await read('sk')
+  # msg = Buffer.from(\11)
+  # signed = sodium.sign(sk, msg)
+  # console.log signed
+
+  # pk = await read('pk')
+  # msg = sodium.verify(pk, signed)
+  # console.log msg.toString()
 
